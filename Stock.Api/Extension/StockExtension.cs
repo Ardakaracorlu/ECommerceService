@@ -2,11 +2,11 @@
 using Stock.Api.Consumer;
 using Stock.Api.Data.Context;
 
-namespace Order.Api.Extension
+namespace Stock.Api.Extension
 {
     public static class StockExtension
     {
-        public static  IServiceCollection RegisterService(IServiceCollection services, IConfigurationRoot configuration)
+        public static IServiceCollection RegisterService(IServiceCollection services, IConfigurationRoot configuration)
         {
 
             services.AddHostedService<StockConsumer>();

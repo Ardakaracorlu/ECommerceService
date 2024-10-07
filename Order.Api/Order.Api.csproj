@@ -16,7 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMQ\RabbitMQ.csproj" />
+    <ProjectReference Include="..\Order.Consumer\Order.Consumer.csproj" />
+    <ProjectReference Include="..\Order.Service\Order.Service.csproj" />
   </ItemGroup>
 
 </Project>

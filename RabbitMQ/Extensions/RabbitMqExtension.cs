@@ -1,7 +1,7 @@
-﻿using A101.RabbitMQ.RabbitMQClient.Base;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
+using RabbitMQ.RabbitMQClient.Base;
 using RabbitMQ.RabbitMQClient.Interface;
 
 namespace RabbitMQ.Extensions

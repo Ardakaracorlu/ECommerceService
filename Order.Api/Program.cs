@@ -1,5 +1,5 @@
-using Order.Api.Consumer;
 using Order.Api.Extension;
+using Order.Consumer.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,10 +37,10 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
 static IHostBuilder CreateHostBuilder(string[] args) =>
 Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
         services.AddHostedService<OrderStatusConsumer>(); // Arka plan servisini enjekte et
     });
+

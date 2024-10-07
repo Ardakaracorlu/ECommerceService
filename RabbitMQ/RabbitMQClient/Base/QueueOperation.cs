@@ -4,77 +4,77 @@ using RabbitMQ.Client.Events;
 using RabbitMQ.RabbitMQClient.Interface;
 using System.Text;
 
-namespace A101.RabbitMQ.RabbitMQClient.Base
+namespace RabbitMQ.RabbitMQClient.Base
 {
     public partial class QueueOperation : IQueueOperation
-	{
-		public static readonly TimeSpan _maxWait = TimeSpan.FromSeconds(5); //One seconds
-		private readonly IConnection _connection;
-		private AutoResetEvent _messageReceived;
+    {
+        public static readonly TimeSpan _maxWait = TimeSpan.FromSeconds(5); //One seconds
+        private readonly IConnection _connection;
+        private AutoResetEvent _messageReceived;
 
-		uint msgCount = 0;
+        uint msgCount = 0;
 
-		public QueueOperation(IConnection connection)
-		{
-			_connection = connection;
-			_messageReceived = new AutoResetEvent(false);
-		}
+        public QueueOperation(IConnection connection)
+        {
+            _connection = connection;
+            _messageReceived = new AutoResetEvent(false);
+        }
 
-		public bool ConfigureExchange(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments = null)
-		{
-			bool exchangeResult = false;
+        public bool ConfigureExchange(string exchange, string type, bool durable, bool autoDelete, IDictionary<string, object> arguments = null)
+        {
+            bool exchangeResult = false;
 
-			using (var channel = _connection.CreateModel())
-			{
-				channel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
+            using (var channel = _connection.CreateModel())
+            {
+                channel.ExchangeDeclare(exchange, type, durable, autoDelete, arguments);
 
-				exchangeResult = true;
-				return exchangeResult;
-			}
-		}
+                exchangeResult = true;
+                return exchangeResult;
+            }
+        }
 
-		public bool ConfigureQueue(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments = null)
-		{
-			bool exchangeResult = false;
+        public bool ConfigureQueue(string queue, bool durable, bool exclusive, bool autoDelete, IDictionary<string, object> arguments = null)
+        {
+            bool exchangeResult = false;
 
-			using (var channel = _connection.CreateModel())
-			{
-				channel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            using (var channel = _connection.CreateModel())
+            {
+                channel.QueueDeclare(queue, durable, exclusive, autoDelete, arguments);
 
-				exchangeResult = true;
-				return exchangeResult;
-			}
-		}
+                exchangeResult = true;
+                return exchangeResult;
+            }
+        }
 
-		public bool BindQueueToExchange(string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
-		{
-			bool exchangeResult = false;
+        public bool BindQueueToExchange(string queue, string exchange, string routingKey, IDictionary<string, object> arguments = null)
+        {
+            bool exchangeResult = false;
 
-			using (var channel = _connection.CreateModel())
-			{
-				channel.QueueBind(queue, exchange, routingKey, arguments);
+            using (var channel = _connection.CreateModel())
+            {
+                channel.QueueBind(queue, exchange, routingKey, arguments);
 
-				exchangeResult = true;
-				return exchangeResult;
-			}
-		}
+                exchangeResult = true;
+                return exchangeResult;
+            }
+        }
 
-        public void ConsumeQueue(string queue, string exchange,string exchangeType , string routingKey, ushort prefetchCount, EventHandler<BasicDeliverEventArgs> receivedEventHandler,long messageTtl = 0)
+        public void ConsumeQueue(string queue, string exchange, string exchangeType, string routingKey, ushort prefetchCount, EventHandler<BasicDeliverEventArgs> receivedEventHandler, long messageTtl = 0)
         {
             using (var channel = _connection.CreateModel())
             {
                 // Prefetch ayarlarını dinamik olarak ayarlıyoruz
                 channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
 
-				// Exchange tanımlama ve bağlama işlemi (isteğe bağlı)
-				if (!string.IsNullOrEmpty(exchange))
-				{
-					channel.ExchangeDeclare(exchange: exchange, type: exchangeType, durable: true, autoDelete: false);
-					channel.QueueDeclare(queue: queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
-					channel.QueueBind(queue: queue, exchange: exchange, routingKey: routingKey);
-				}
+                // Exchange tanımlama ve bağlama işlemi (isteğe bağlı)
+                if (!string.IsNullOrEmpty(exchange))
+                {
+                    channel.ExchangeDeclare(exchange: exchange, type: exchangeType, durable: true, autoDelete: false);
+                    channel.QueueDeclare(queue: queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
+                    channel.QueueBind(queue: queue, exchange: exchange, routingKey: routingKey);
+                }
 
-				var consumer = new EventingBasicConsumer(channel);
+                var consumer = new EventingBasicConsumer(channel);
 
                 // Received olayını dinamik olarak ayarlıyoruz
                 consumer.Received += receivedEventHandler;
@@ -92,23 +92,23 @@ namespace A101.RabbitMQ.RabbitMQClient.Base
 
 
         public void PublishMessage<TMessage>(TMessage message, string queue, string exchange, string routingKey, long messageTtl = 0) where TMessage : class
-		{
-			using (var channel = _connection.CreateModel())
-			{
-				//Get Channel Properties
-				var properties = channel.CreateBasicProperties();
-				properties.Persistent = true;
+        {
+            using (var channel = _connection.CreateModel())
+            {
+                //Get Channel Properties
+                var properties = channel.CreateBasicProperties();
+                properties.Persistent = true;
 
-				string serializedObj = JsonConvert.SerializeObject(message);
-				var body = Encoding.UTF8.GetBytes(serializedObj);
+                string serializedObj = JsonConvert.SerializeObject(message);
+                var body = Encoding.UTF8.GetBytes(serializedObj);
 
 
-				channel.BasicPublish(exchange: exchange,
-									 routingKey: routingKey,
-									 basicProperties: properties,
-									 body: body);
-			}
-		}
+                channel.BasicPublish(exchange: exchange,
+                                     routingKey: routingKey,
+                                     basicProperties: properties,
+                                     body: body);
+            }
+        }
 
         private void HandleCallbackException(object sender, CallbackExceptionEventArgs e)
         {
