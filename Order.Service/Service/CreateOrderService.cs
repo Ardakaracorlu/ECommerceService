@@ -2,6 +2,7 @@
 using Order.Data.Context;
 using Order.Data.Entities;
 using Order.RabbitMQ.RabbitMQClient.Interface;
+using Order.Service.Configuration;
 using Order.Service.Model.Request;
 
 namespace Order.Service.Service
@@ -14,11 +15,13 @@ namespace Order.Service.Service
     {
         private readonly OrderDbContext _orderDbContext;
         private readonly IQueueOperation _queueOperation;
+        private readonly ConfigManager _configManager;
 
-        public CreateOrderService(OrderDbContext orderDbContext, IQueueOperation queueOperation)
+        public CreateOrderService(OrderDbContext orderDbContext, IQueueOperation queueOperation, ConfigManager configManager)
         {
             _orderDbContext = orderDbContext;
             _queueOperation = queueOperation;
+            _configManager = configManager;
         }
 
         public async Task<string> CreateOrder(CreateOrderRequest createOrderRequest)
@@ -46,7 +49,11 @@ namespace Order.Service.Service
                 Quantity = createOrderRequest.Quantity,
             };
 
-            _queueOperation.PublishMessage(stockQueueRequest, "stock_queue", "stock.direct", "stock_key", 0); // StockQueue
+            _queueOperation.PublishMessage(stockQueueRequest,
+                _configManager.StockQueueConfiguration.QueueName,
+                _configManager.StockQueueConfiguration.ExchangeName,
+                _configManager.StockQueueConfiguration.RoutingKey,
+                _configManager.StockQueueConfiguration.MessageTtl); 
 
             return "Siparişiniz Başarıyla Alındı";
         }

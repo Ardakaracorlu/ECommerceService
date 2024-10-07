@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Order.Consumer.Configuration;
 using Order.Consumer.Model.Request;
 using Order.Consumer.Model.Response;
 using Order.Data.Constants;
@@ -15,16 +16,21 @@ namespace Order.Consumer.Consumer
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IQueueOperation _queueOperation;
+        private readonly ConfigManager _configManager;
 
-        public OrderStatusConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
+        public OrderStatusConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation, ConfigManager configManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _queueOperation = queueOperation;
+            _configManager = configManager;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _queueOperation.ConsumeQueue("order_status_queue", "order_status_direct", "direct", "order_status_key", 1, receivedEventHandler: (model, ea) =>
+            _queueOperation.ConsumeQueue(_configManager.OrderStatusQueueConfiguration.QueueName,
+                _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                _configManager.OrderStatusQueueConfiguration.ExchangeType,
+                _configManager.OrderStatusQueueConfiguration.RoutingKey, 1, receivedEventHandler: (model, ea) =>
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
@@ -61,14 +67,20 @@ namespace Order.Consumer.Consumer
                         OrderId = orderData.Id,
                         Email = orderData.Email,
                         Message = customerMessage,
-                    }, "notification_email", "notification_topic", "notification_email_key", 0);
+                    }, _configManager.NotificationEmailQueueConfiguration.QueueName,
+                    _configManager.NotificationEmailQueueConfiguration.ExchangeName,
+                    _configManager.NotificationEmailQueueConfiguration.RoutingKey,
+                    _configManager.NotificationEmailQueueConfiguration.MessageTtl);
 
                     _queueOperation.PublishMessage(new NotificationSmsRequest
                     {
                         OrderId = orderData.Id,
                         Phone = orderData.Phone,
                         Message = customerMessage
-                    }, "notification_sms", "notification_topic", "notification_sms_key", 0);
+                    }, _configManager.NotificationSmsQueueConfiguration.QueueName,
+                    _configManager.NotificationSmsQueueConfiguration.ExchangeName,
+                    _configManager.NotificationSmsQueueConfiguration.RoutingKey,
+                    _configManager.NotificationSmsQueueConfiguration.MessageTtl);
 
                     ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                 }

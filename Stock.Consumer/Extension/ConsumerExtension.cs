@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Stock.Consumer.Configuration;
 using Stock.Consumer.Consumer;
 
 namespace Stock.Consumer.Extension
@@ -8,6 +9,7 @@ namespace Stock.Consumer.Extension
     {
         public static IServiceCollection RegisterService(IServiceCollection services, IConfigurationRoot configuration)
         {
+            services.AddSingleton<ConfigManager>();
             services.AddHostedService<StockConsumer>();
             Stock.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
             Stock.Data.Extension.DataExtension.RegisterService(services, configuration);

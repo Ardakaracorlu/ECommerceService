@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Notification.Consumer.Configuration;
 using Notification.Consumer.Model.Response;
 using Notification.Data.Constants;
 using Notification.Data.Context;
@@ -15,16 +16,21 @@ namespace Notification.Consumer.Consumer
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IQueueOperation _queueOperation;
+        private readonly ConfigManager _configManager;
 
-        public SmsConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
+        public SmsConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation, ConfigManager configManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _queueOperation = queueOperation;
+            _configManager = configManager;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _queueOperation.ConsumeQueue("notification_sms", "notification_topic", "topic", "notification_sms_key", 1, receivedEventHandler: (model, ea) =>
+            _queueOperation.ConsumeQueue(_configManager.NotificationSmsQueueConfiguration.QueueName,
+                _configManager.NotificationSmsQueueConfiguration.ExchangeName,
+                _configManager.NotificationSmsQueueConfiguration.ExchangeType,
+                _configManager.NotificationSmsQueueConfiguration.RoutingKey, 1, receivedEventHandler: (model, ea) =>
                 {
 
                     using (var scope = _serviceScopeFactory.CreateScope())

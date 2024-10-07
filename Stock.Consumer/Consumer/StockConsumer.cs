@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Events;
+using Stock.Consumer.Configuration;
 using Stock.Consumer.Model.Request;
 using Stock.Consumer.Model.Response;
 using Stock.Data.Context;
@@ -14,16 +15,22 @@ namespace Stock.Consumer.Consumer
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IQueueOperation _queueOperation;
+        private readonly ConfigManager _configManager;
 
-        public StockConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
+        public StockConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation, ConfigManager configManager)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _queueOperation = queueOperation;
+            _configManager = configManager;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _queueOperation.ConsumeQueue("stock_queue", "stock.direct", "direct", "stock_key", 1, async (model, ea) =>
+            _queueOperation.ConsumeQueue(_configManager.StockQueueConfiguration.QueueName,
+                _configManager.StockQueueConfiguration.ExchangeName,
+                _configManager.StockQueueConfiguration.ExchangeType,
+                _configManager.StockQueueConfiguration.RoutingKey,
+                1, async (model, ea) =>
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
@@ -42,7 +49,10 @@ namespace Stock.Consumer.Consumer
                     if (stockData == null)
                     {
                         orderStatusRequest.Message = "Ürün Bulunamadı";
-                        _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
+                        _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
+                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
                         ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                         return;
                     }
@@ -50,7 +60,10 @@ namespace Stock.Consumer.Consumer
                     if (stockResponse.Quantity > stockData.Quantity)
                     {
                         orderStatusRequest.Message = "Ürün için Yeterli Stok Durumu bulunamadı";
-                        _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
+                        _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
+                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
                         ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                         return;
                     }
@@ -62,7 +75,10 @@ namespace Stock.Consumer.Consumer
 
                     orderStatusRequest.Message = "Sipariş Hazırlanıyor";
                     orderStatusRequest.Status = true;
-                    _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
+                    _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
+                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
 
                     ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                 }
