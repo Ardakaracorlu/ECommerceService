@@ -9,9 +9,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Polly" Version="8.4.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Stock.Common\Stock.Common.csproj" />
     <ProjectReference Include="..\Stock.Data\Stock.Data.csproj" />
     <ProjectReference Include="..\Stock.RabbitMQ\Stock.RabbitMQ.csproj" />
   </ItemGroup>

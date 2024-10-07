@@ -1,4 +1,5 @@
-﻿using Order.Data.Constants;
+﻿using Order.Common.Helper;
+using Order.Data.Constants;
 using Order.Data.Context;
 using Order.Data.Entities;
 using Order.RabbitMQ.RabbitMQClient.Interface;
@@ -49,11 +50,18 @@ namespace Order.Service.Service
                 Quantity = createOrderRequest.Quantity,
             };
 
-            _queueOperation.PublishMessage(stockQueueRequest,
-                _configManager.StockQueueConfiguration.QueueName,
-                _configManager.StockQueueConfiguration.ExchangeName,
-                _configManager.StockQueueConfiguration.RoutingKey,
-                _configManager.StockQueueConfiguration.MessageTtl); 
+            var retryPolicy = RetryPolicyHelper.GetRetryPolicy();
+            retryPolicy.Execute(() =>
+            {
+                _queueOperation.PublishMessage(stockQueueRequest,
+                  _configManager.StockQueueConfiguration.QueueName,
+                  _configManager.StockQueueConfiguration.ExchangeName,
+                  _configManager.StockQueueConfiguration.RoutingKey,
+                  _configManager.StockQueueConfiguration.MessageTtl);
+            });
+
+
+              
 
             return "Siparişiniz Başarıyla Alındı";
         }

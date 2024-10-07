@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Notification.Common.Helper;
 using Notification.Consumer.Configuration;
 using Notification.Consumer.Model.Response;
 using Notification.Data.Constants;
@@ -37,30 +38,33 @@ namespace Notification.Consumer.Consumer
                 {
                     var _notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
 
+                    var retryPolicy = RetryPolicyHelper.GetRetryPolicy();
 
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var emailResponse = JsonSerializer.Deserialize<NotificationEmailResponse>(message);
-
-                    SendMail(emailResponse.Message, emailResponse.Email);
-
-                    NotificationInfo notificationInfo = new NotificationInfo
+                    retryPolicy.Execute(() =>
                     {
-                        Recipient = emailResponse.Email,
-                        Message = emailResponse.Message,
-                        NotificationStatus = NotificationStatus.Sent,
-                        NotificationType = NotificationType.Email,
-                        OrderId = emailResponse.OrderId,
-                    };
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var emailResponse = JsonSerializer.Deserialize<NotificationEmailResponse>(message);
 
-                    _notificationDbContext.Add(notificationInfo);
-                    _notificationDbContext.SaveChanges();
+                        SendMail(emailResponse.Message, emailResponse.Email);
 
-                    ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                        NotificationInfo notificationInfo = new NotificationInfo
+                        {
+                            Recipient = emailResponse.Email,
+                            Message = emailResponse.Message,
+                            NotificationStatus = NotificationStatus.Sent,
+                            NotificationType = NotificationType.Email,
+                            OrderId = emailResponse.OrderId,
+                        };
+
+                        _notificationDbContext.Add(notificationInfo);
+                        _notificationDbContext.SaveChanges();
+
+                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                    });
                 }
             });
 
-            // Sürekli dinlemeyi sağla
             return Task.CompletedTask;
         }
 

@@ -8,7 +8,7 @@ namespace Stock.RabbitMQ.RabbitMQClient.Base
 {
     public partial class QueueOperation : IQueueOperation
     {
-        public static readonly TimeSpan _maxWait = TimeSpan.FromMinutes(5); //One seconds
+        public static readonly TimeSpan _maxWait = TimeSpan.FromMinutes(5);
         private readonly IConnection _connection;
         private AutoResetEvent _messageReceived;
 
@@ -59,46 +59,11 @@ namespace Stock.RabbitMQ.RabbitMQClient.Base
             }
         }
 
-        //public void ConsumeQueue(string queue, string exchange, string exchangeType, string routingKey, ushort prefetchCount, EventHandler<BasicDeliverEventArgs> receivedEventHandler, long messageTtl = 0)
-        //{
-        //    using (var channel = _connection.CreateModel())
-        //    {
-        //        // Prefetch ayarlarını dinamik olarak ayarlıyoruz
-        //        channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
-
-        //        // Exchange tanımlama ve bağlama işlemi (isteğe bağlı)
-        //        if (!string.IsNullOrEmpty(exchange))
-        //        {
-        //            channel.ExchangeDeclare(exchange: exchange, type: exchangeType, durable: true, autoDelete: false);
-        //            channel.QueueDeclare(queue: queue, durable: true, exclusive: false, autoDelete: false, arguments: null);
-        //            channel.QueueBind(queue: queue, exchange: exchange, routingKey: routingKey);
-        //        }
-
-        //        var consumer = new EventingBasicConsumer(channel);
-
-        //        // Received olayını dinamik olarak ayarlıyoruz
-        //        consumer.Received += receivedEventHandler;
-
-        //        // CallbackException olayını dinamik olarak ayarlıyoruz
-        //        channel.CallbackException += HandleCallbackException;
-
-        //        // Kuyruğu dinamik olarak tüketmeye başlıyoruz
-        //        channel.BasicConsume(queue: queue, autoAck: false, consumer: consumer);
-
-        //        // Mesajın alınmasını bekliyoruz
-        //        _messageReceived.WaitOne(_maxWait);
-        //    }
-        //}
-
         public void ConsumeQueue(string queue, string exchange, string exchangeType, string routingKey, ushort prefetchCount, EventHandler<BasicDeliverEventArgs> receivedEventHandler, long messageTtl = 0)
         {
-            // `using` bloğunu kaldırıyoruz, `channel`'ın ve `consumer`'ın dispose edilmemesini sağlıyoruz
             var channel = _connection.CreateModel();
 
-            // Prefetch ayarlarını dinamik olarak ayarlıyoruz
             channel.BasicQos(prefetchSize: 0, prefetchCount: prefetchCount, global: false);
-
-            // Exchange tanımlama ve bağlama işlemi (isteğe bağlı)
             if (!string.IsNullOrEmpty(exchange))
             {
                 channel.ExchangeDeclare(exchange: exchange, type: exchangeType, durable: true, autoDelete: false);
@@ -114,8 +79,6 @@ namespace Stock.RabbitMQ.RabbitMQClient.Base
             // Kuyruğu dinamik olarak tüketmeye başlıyoruz
             channel.BasicConsume(queue: queue, autoAck: false, consumer: consumer);
         }
-
-
 
         public void PublishMessage<TMessage>(TMessage message, string queue, string exchange, string routingKey, long messageTtl = 0) where TMessage : class
         {
@@ -134,12 +97,6 @@ namespace Stock.RabbitMQ.RabbitMQClient.Base
                                      basicProperties: properties,
                                      body: body);
             }
-        }
-
-        private void HandleCallbackException(object sender, CallbackExceptionEventArgs e)
-        {
-            Console.WriteLine(" [!] CallbackException: {0}", e.Exception.Message);
-            // Ek hata işleme mantığı buraya eklenebilir
         }
     }
 }

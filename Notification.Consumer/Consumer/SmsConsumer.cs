@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Notification.Common.Helper;
 using Notification.Consumer.Configuration;
 using Notification.Consumer.Model.Response;
 using Notification.Data.Constants;
@@ -37,29 +38,33 @@ namespace Notification.Consumer.Consumer
                     {
                         var _notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
 
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-                        var smsResponse = JsonSerializer.Deserialize<NotificationSmsResponse>(message);
+                        var retryPolicy = RetryPolicyHelper.GetRetryPolicy();
 
-                        SendSms(smsResponse.Message, smsResponse.Phone);
-
-                        NotificationInfo notificationInfo = new NotificationInfo
+                        retryPolicy.Execute(() =>
                         {
-                            Recipient = smsResponse.Phone,
-                            Message = smsResponse.Message,
-                            NotificationStatus = NotificationStatus.Sent,
-                            NotificationType = NotificationType.Sms,
-                            OrderId = smsResponse.OrderId,
-                        };
+                            var body = ea.Body.ToArray();
+                            var message = Encoding.UTF8.GetString(body);
+                            var smsResponse = JsonSerializer.Deserialize<NotificationSmsResponse>(message);
 
-                        _notificationDbContext.Add(notificationInfo);
-                        _notificationDbContext.SaveChanges();
+                            SendSms(smsResponse.Message, smsResponse.Phone);
 
-                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                            NotificationInfo notificationInfo = new NotificationInfo
+                            {
+                                Recipient = smsResponse.Phone,
+                                Message = smsResponse.Message,
+                                NotificationStatus = NotificationStatus.Sent,
+                                NotificationType = NotificationType.Sms,
+                                OrderId = smsResponse.OrderId,
+                            };
+
+                            _notificationDbContext.Add(notificationInfo);
+                            _notificationDbContext.SaveChanges();
+
+                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                        });
                     }
                 });
 
-            // Sürekli dinlemeyi sağla
             return Task.CompletedTask;
         }
 

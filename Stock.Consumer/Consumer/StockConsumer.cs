@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Events;
+using Stock.Common.Helper;
 using Stock.Consumer.Configuration;
 using Stock.Consumer.Model.Request;
 using Stock.Consumer.Model.Response;
@@ -35,52 +36,56 @@ namespace Stock.Consumer.Consumer
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var _stockDbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
+                    var retryPolicy = RetryPolicyHelper.GetRetryPolicy();
 
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var stockResponse = JsonSerializer.Deserialize<StockQueueResponse>(message);
-
-                    var stockData = _stockDbContext.StocksInfo.SingleOrDefault(x => x.ProductId == stockResponse.ProductId);
-                    OrderStatusRequest orderStatusRequest = new OrderStatusRequest
+                    retryPolicy.Execute(() =>
                     {
-                        OrderId = stockResponse.OrderId
-                    };
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var stockResponse = JsonSerializer.Deserialize<StockQueueResponse>(message);
 
-                    if (stockData == null)
-                    {
-                        orderStatusRequest.Message = "Ürün Bulunamadı";
+                        var stockData = _stockDbContext.StocksInfo.SingleOrDefault(x => x.ProductId == stockResponse.ProductId);
+                        OrderStatusRequest orderStatusRequest = new OrderStatusRequest
+                        {
+                            OrderId = stockResponse.OrderId
+                        };
+
+                        if (stockData == null)
+                        {
+                            orderStatusRequest.Message = "Ürün Bulunamadı";
+                            _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
+                                _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                                _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                                _configManager.OrderStatusQueueConfiguration.MessageTtl);
+                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                            return;
+                        }
+
+                        if (stockResponse.Quantity > stockData.Quantity)
+                        {
+                            orderStatusRequest.Message = "Ürün için Yeterli Stok Durumu bulunamadı";
+                            _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
+                                _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                                _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                                _configManager.OrderStatusQueueConfiguration.MessageTtl);
+                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                            return;
+                        }
+
+                        stockData.Quantity -= stockResponse.Quantity;
+                        stockData.UpdatedAt = DateTime.Now;
+                        _stockDbContext.Update(stockData);
+                        _stockDbContext.SaveChanges();
+
+                        orderStatusRequest.Message = "Sipariş Hazırlanıyor";
+                        orderStatusRequest.Status = true;
                         _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
-                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
-                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
-                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
+                                _configManager.OrderStatusQueueConfiguration.ExchangeName,
+                                _configManager.OrderStatusQueueConfiguration.RoutingKey,
+                                _configManager.OrderStatusQueueConfiguration.MessageTtl);
+
                         ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-                        return;
-                    }
-
-                    if (stockResponse.Quantity > stockData.Quantity)
-                    {
-                        orderStatusRequest.Message = "Ürün için Yeterli Stok Durumu bulunamadı";
-                        _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
-                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
-                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
-                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
-                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-                        return;
-                    }
-
-                    stockData.Quantity -= stockResponse.Quantity;
-                    stockData.UpdatedAt = DateTime.Now;
-                    _stockDbContext.Update(stockData);
-                    await _stockDbContext.SaveChangesAsync();
-
-                    orderStatusRequest.Message = "Sipariş Hazırlanıyor";
-                    orderStatusRequest.Status = true;
-                    _queueOperation.PublishMessage(orderStatusRequest, _configManager.OrderStatusQueueConfiguration.QueueName,
-                            _configManager.OrderStatusQueueConfiguration.ExchangeName,
-                            _configManager.OrderStatusQueueConfiguration.RoutingKey,
-                            _configManager.OrderStatusQueueConfiguration.MessageTtl);
-
-                    ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                    }); 
                 }
             });
             return Task.CompletedTask;

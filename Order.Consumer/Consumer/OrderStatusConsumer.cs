@@ -7,6 +7,7 @@ using Order.Data.Constants;
 using Order.Data.Context;
 using Order.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client.Events;
+using Stock.Common.Helper;
 using System.Text;
 using System.Text.Json;
 
@@ -36,57 +37,60 @@ namespace Order.Consumer.Consumer
                 {
                     var _orderDbContext = scope.ServiceProvider.GetRequiredService<OrderDbContext>();
 
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var orderStatusResponse = JsonSerializer.Deserialize<OrderStatusResponse>(message);
+                    var retryPolicy = RetryPolicyHelper.GetRetryPolicy();
 
-                    var orderData = _orderDbContext.OrdersInfo.SingleOrDefault(x => x.Id == orderStatusResponse.OrderId);
-                    string customerMessage = string.Empty;
-
-
-                    if (orderStatusResponse.Status)
+                    retryPolicy.Execute(() =>
                     {
-                        orderData.Status = OrderStatus.OrderProcessing;
-                        orderData.Description = orderStatusResponse.Message;
-                        orderData.UpdatedAt = DateTime.Now;
-                        customerMessage = $"Sayın {orderData.CustomerName} {orderData.CustomerSurname} Siparişiniz hazırlanıyor";
-                    }
-                    else
-                    {
-                        orderData.Status = OrderStatus.OrderCanceled;
-                        orderData.Description = orderStatusResponse.Message;
-                        orderData.UpdatedAt = DateTime.Now;
-                        customerMessage = $"Sayın {orderData.CustomerName} {orderData.CustomerSurname} Siparişiniz iptal edildi";
-                    }
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var orderStatusResponse = JsonSerializer.Deserialize<OrderStatusResponse>(message);
 
-                    _orderDbContext.Update(orderData);
-                    _orderDbContext.SaveChanges();
+                        var orderData = _orderDbContext.OrdersInfo.SingleOrDefault(x => x.Id == orderStatusResponse.OrderId);
+                        string customerMessage = string.Empty;
 
-                    _queueOperation.PublishMessage(new NotificationEmailRequest
-                    {
-                        OrderId = orderData.Id,
-                        Email = orderData.Email,
-                        Message = customerMessage,
-                    }, _configManager.NotificationEmailQueueConfiguration.QueueName,
-                    _configManager.NotificationEmailQueueConfiguration.ExchangeName,
-                    _configManager.NotificationEmailQueueConfiguration.RoutingKey,
-                    _configManager.NotificationEmailQueueConfiguration.MessageTtl);
 
-                    _queueOperation.PublishMessage(new NotificationSmsRequest
-                    {
-                        OrderId = orderData.Id,
-                        Phone = orderData.Phone,
-                        Message = customerMessage
-                    }, _configManager.NotificationSmsQueueConfiguration.QueueName,
-                    _configManager.NotificationSmsQueueConfiguration.ExchangeName,
-                    _configManager.NotificationSmsQueueConfiguration.RoutingKey,
-                    _configManager.NotificationSmsQueueConfiguration.MessageTtl);
+                        if (orderStatusResponse.Status)
+                        {
+                            orderData.Status = OrderStatus.OrderProcessing;
+                            orderData.Description = orderStatusResponse.Message;
+                            orderData.UpdatedAt = DateTime.Now;
+                            customerMessage = $"Sayın {orderData.CustomerName} {orderData.CustomerSurname} Siparişiniz hazırlanıyor";
+                        }
+                        else
+                        {
+                            orderData.Status = OrderStatus.OrderCanceled;
+                            orderData.Description = orderStatusResponse.Message;
+                            orderData.UpdatedAt = DateTime.Now;
+                            customerMessage = $"Sayın {orderData.CustomerName} {orderData.CustomerSurname} Siparişiniz iptal edildi";
+                        }
 
-                    ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                        _orderDbContext.Update(orderData);
+                        _orderDbContext.SaveChanges();
+
+                        _queueOperation.PublishMessage(new NotificationEmailRequest
+                        {
+                            OrderId = orderData.Id,
+                            Email = orderData.Email,
+                            Message = customerMessage,
+                        }, _configManager.NotificationEmailQueueConfiguration.QueueName,
+                        _configManager.NotificationEmailQueueConfiguration.ExchangeName,
+                        _configManager.NotificationEmailQueueConfiguration.RoutingKey,
+                        _configManager.NotificationEmailQueueConfiguration.MessageTtl);
+
+                        _queueOperation.PublishMessage(new NotificationSmsRequest
+                        {
+                            OrderId = orderData.Id,
+                            Phone = orderData.Phone,
+                            Message = customerMessage
+                        }, _configManager.NotificationSmsQueueConfiguration.QueueName,
+                        _configManager.NotificationSmsQueueConfiguration.ExchangeName,
+                        _configManager.NotificationSmsQueueConfiguration.RoutingKey,
+                        _configManager.NotificationSmsQueueConfiguration.MessageTtl);
+
+                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                    });
                 }
             });
-
-            // Sürekli dinlemeyi sağla
             return Task.CompletedTask;
 
         }
