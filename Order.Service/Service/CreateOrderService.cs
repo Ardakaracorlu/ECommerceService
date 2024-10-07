@@ -1,8 +1,8 @@
 ﻿using Order.Data.Constants;
 using Order.Data.Context;
 using Order.Data.Entities;
+using Order.RabbitMQ.RabbitMQClient.Interface;
 using Order.Service.Model.Request;
-using RabbitMQ.RabbitMQClient.Interface;
 
 namespace Order.Service.Service
 {

@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client.Events;
 
-namespace RabbitMQ.RabbitMQClient.Interface
+namespace Order.RabbitMQ.RabbitMQClient.Interface
 {
     public interface IQueueOperation
     {

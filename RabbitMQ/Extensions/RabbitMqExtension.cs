@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Order.RabbitMQ.RabbitMQClient.Base;
+using Order.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client;
-using RabbitMQ.RabbitMQClient.Base;
-using RabbitMQ.RabbitMQClient.Interface;
 
-namespace RabbitMQ.Extensions
+namespace Order.RabbitMQ.Extensions
 {
     public static class RabbitMqExtension
     {

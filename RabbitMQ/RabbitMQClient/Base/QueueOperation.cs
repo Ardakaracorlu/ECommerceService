@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
+using Order.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.RabbitMQClient.Interface;
 using System.Text;
 
-namespace RabbitMQ.RabbitMQClient.Base
+namespace Order.RabbitMQ.RabbitMQClient.Base
 {
     public partial class QueueOperation : IQueueOperation
     {

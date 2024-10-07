@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Notification.Data\Notification.Data.csproj" />
-    <ProjectReference Include="..\RabbitMQ\RabbitMQ.csproj" />
+    <ProjectReference Include="..\Notification.RabbitMQ\Notification.RabbitMQ.csproj" />
   </ItemGroup>
 
   <ItemGroup>

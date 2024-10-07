@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Order.Data\Order.Data.csproj" />
-    <ProjectReference Include="..\RabbitMQ\RabbitMQ.csproj" />
+    <ProjectReference Include="..\RabbitMQ\Order.RabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

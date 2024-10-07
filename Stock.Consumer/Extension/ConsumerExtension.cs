@@ -9,7 +9,7 @@ namespace Stock.Consumer.Extension
         public static IServiceCollection RegisterService(IServiceCollection services, IConfigurationRoot configuration)
         {
             services.AddHostedService<StockConsumer>();
-            RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
+            Stock.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
             Stock.Data.Extension.DataExtension.RegisterService(services, configuration);
             return services;
         }

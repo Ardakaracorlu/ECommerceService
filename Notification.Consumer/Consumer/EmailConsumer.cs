@@ -4,8 +4,8 @@ using Notification.Consumer.Model.Response;
 using Notification.Data.Constants;
 using Notification.Data.Context;
 using Notification.Data.Entities;
+using Notification.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client.Events;
-using RabbitMQ.RabbitMQClient.Interface;
 using System.Text;
 using System.Text.Json;
 

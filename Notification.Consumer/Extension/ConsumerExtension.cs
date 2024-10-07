@@ -10,8 +10,8 @@ namespace Notification.Consumer.Extension
         {
             services.AddHostedService<EmailConsumer>();
             services.AddHostedService<SmsConsumer>();
-            RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
-            Data.Extension.DataExtension.RegisterService(services, configuration);
+            Notification.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
+            Notification.Data.Extension.DataExtension.RegisterService(services, configuration);
             return services;
         }
     }

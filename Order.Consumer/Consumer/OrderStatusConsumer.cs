@@ -4,8 +4,8 @@ using Order.Consumer.Model.Request;
 using Order.Consumer.Model.Response;
 using Order.Data.Constants;
 using Order.Data.Context;
+using Order.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client.Events;
-using RabbitMQ.RabbitMQClient.Interface;
 using System.Text;
 using System.Text.Json;
 
@@ -36,6 +36,7 @@ namespace Order.Consumer.Consumer
 
                     var orderData = _orderDbContext.OrdersInfo.SingleOrDefault(x => x.Id == orderStatusResponse.OrderId);
                     string customerMessage = string.Empty;
+
 
                     if (orderStatusResponse.Status)
                     {

@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMQ\RabbitMQ.csproj" />
     <ProjectReference Include="..\Stock.Data\Stock.Data.csproj" />
+    <ProjectReference Include="..\Stock.RabbitMQ\Stock.RabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

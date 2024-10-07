@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Events;
-using RabbitMQ.RabbitMQClient.Interface;
 using Stock.Consumer.Model.Request;
 using Stock.Consumer.Model.Response;
 using Stock.Data.Context;
+using Stock.RabbitMQ.RabbitMQClient.Interface;
 using System.Text;
 using System.Text.Json;
 
@@ -23,7 +23,6 @@ namespace Stock.Consumer.Consumer
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // RabbitMQ'dan mesajları dinlemeye başla
             _queueOperation.ConsumeQueue("stock_queue", "stock.direct", "direct", "stock_key", 1, async (model, ea) =>
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
@@ -34,7 +33,6 @@ namespace Stock.Consumer.Consumer
                     var message = Encoding.UTF8.GetString(body);
                     var stockResponse = JsonSerializer.Deserialize<StockQueueResponse>(message);
 
-                    // Mesajın işlenmesi ve veritabanı işlemleri
                     var stockData = _stockDbContext.StocksInfo.SingleOrDefault(x => x.ProductId == stockResponse.ProductId);
                     OrderStatusRequest orderStatusRequest = new OrderStatusRequest
                     {
@@ -57,13 +55,11 @@ namespace Stock.Consumer.Consumer
                         return;
                     }
 
-                    // Stok güncelleme
                     stockData.Quantity -= stockResponse.Quantity;
                     stockData.UpdatedAt = DateTime.Now;
                     _stockDbContext.Update(stockData);
                     await _stockDbContext.SaveChangesAsync();
 
-                    // Başarılı işlem sonrası mesaj gönderimi
                     orderStatusRequest.Message = "Sipariş Hazırlanıyor";
                     orderStatusRequest.Status = true;
                     _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
@@ -71,8 +67,6 @@ namespace Stock.Consumer.Consumer
                     ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                 }
             });
-
-            // Sürekli dinlemeyi sağla
             return Task.CompletedTask;
         }
     }
