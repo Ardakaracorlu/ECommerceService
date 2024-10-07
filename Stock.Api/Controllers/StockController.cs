@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Stock.Api.Data.Context;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Stock.Api.Controllers
 {
@@ -9,19 +6,11 @@ namespace Stock.Api.Controllers
     [ApiController]
     public class StockController : ControllerBase
     {
-        private readonly StockDbContext _stockDbContext;
-
-        public StockController(StockDbContext stockDbContext)
+        [HttpGet("Get")]
+        public async Task<IActionResult> Get()
         {
-            _stockDbContext = stockDbContext;
-        }
 
-        [HttpGet("GetStocks")]
-        public async Task<IActionResult> GetStocks()
-        {
-            var asd = await _stockDbContext.StocksInfo.ToListAsync();
-
-            return Ok(asd);
+            return Ok();
         }
     }
 }

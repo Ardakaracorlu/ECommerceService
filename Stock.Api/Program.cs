@@ -1,5 +1,5 @@
-using Stock.Api.Consumer;
 using Stock.Api.Extension;
+using Stock.Consumer.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
