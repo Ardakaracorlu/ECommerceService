@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Order.Common.Helper;
 using Order.Consumer.Configuration;
 using Order.Consumer.Model.Request;
 using Order.Consumer.Model.Response;
@@ -7,7 +8,6 @@ using Order.Data.Constants;
 using Order.Data.Context;
 using Order.RabbitMQ.RabbitMQClient.Interface;
 using RabbitMQ.Client.Events;
-using Stock.Common.Helper;
 using System.Text;
 using System.Text.Json;
 

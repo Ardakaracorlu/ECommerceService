@@ -3,22 +3,25 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Notification.Api.csproj", "Notification.Api/"]
+COPY ["Notification.Api/Notification.Api.csproj", "Notification.Api/"]
+COPY ["Notification.Consumer/Notification.Consumer.csproj", "Notification.Consumer/"]
+COPY ["Notification.Common/Notification.Common.csproj", "Notification.Common/"]
+COPY ["Notification.Data/Notification.Data.csproj", "Notification.Data/"]
+COPY ["Notification.RabbitMQ/Notification.RabbitMQ.csproj", "Notification.RabbitMQ/"]
 RUN dotnet restore "./Notification.Api/Notification.Api.csproj"
-
-WORKDIR "/src/Notification.Api"
 COPY . .
-RUN dotnet build "Notification.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Notification.Api"
+RUN dotnet build "./Notification.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Notification.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Notification.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

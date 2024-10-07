@@ -3,6 +3,7 @@ services:
   # RabbitMQ Servisi
   rabbitmq:
     image: rabbitmq:3-management
+    hostname: "rabbitmq"
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
@@ -14,44 +15,10 @@ services:
     networks:
       - ecommerce-network
 
-  # Order Servisi ve PostgreSQL
-  orders-postgres:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: orders_user
-      POSTGRES_PASSWORD: orders_password
-      POSTGRES_DB: ordersdb
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./ordersdb_data:/var/lib/postgresql/data
-    networks:
-      - ecommerce-network
-
-  order-service:
-    build:
-      context: ./Order.Api
-      dockerfile: Dockerfile
-    container_name: order-service
-    image: orderapi-order-service
-    ports:
-      - "5000:80"
-    environment:
-      ConnectionStrings__Postgres: Server=orders-postgres;Port=5432;Database=ordersdb;User Id=orders_user;Password=orders_password
-      RabbitMQSettings__HostName: rabbitmq
-      RabbitMQSettings__UserName: user
-      RabbitMQSettings__Password: password
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:80
-    depends_on:
-      - orders-postgres
-      - rabbitmq
-    networks:
-      - ecommerce-network
-
-  # Notification Servisi ve PostgreSQL
+      # Notification Servisi ve PostgreSQL
   notification-postgres:
     image: postgres:latest
+    hostname: "notification"
     environment:
       POSTGRES_USER: notifications_user
       POSTGRES_PASSWORD: notifications_password
@@ -65,8 +32,8 @@ services:
 
   notification-service:
     build:
-      context: ./Notification.Api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Notification.Api/Dockerfile
     image: notificationapi-notification-service
     ports:
       - "5001:80"
@@ -79,14 +46,15 @@ services:
       ASPNETCORE_URLS: http://+:80
 
     depends_on:
-      - notification-postgres
       - rabbitmq
+      - notification-postgres
     networks:
       - ecommerce-network
 
   # Stock Servisi ve PostgreSQL
   stocks-postgres:
     image: postgres:latest
+    hostname: "stocks"
     environment:
       POSTGRES_USER: stocks_user
       POSTGRES_PASSWORD: stocks_password
@@ -100,8 +68,8 @@ services:
 
   stock-service:
     build:
-      context: ./Stock.Api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Stock.Api/Dockerfile
     image: stockapi-stock-service
     ports:
       - "5002:80"
@@ -113,11 +81,48 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
     depends_on:
-      - stocks-postgres
       - rabbitmq
+      - stocks-postgres
     networks:
       - ecommerce-network
 
+      # Order Servisi ve PostgreSQL
+  orders-postgres:
+    image: postgres:latest
+    hostname: "orders"
+    environment:
+      POSTGRES_USER: orders_user
+      POSTGRES_PASSWORD: orders_password
+      POSTGRES_DB: ordersdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./ordersdb_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: Order.Api/Dockerfile
+    container_name: order-service
+    image: orderapi-order-service
+    ports:
+      - "5000:80"
+    environment:
+      ConnectionStrings__Postgres: Server=orders-postgres;Port=5432;Database=ordersdb;User Id=orders_user;Password=orders_password
+      RabbitMQSettings__HostName: rabbitmq
+      RabbitMQSettings__UserName: user
+      RabbitMQSettings__Password: password
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+    depends_on:
+      - rabbitmq
+      - orders-postgres    
+    networks:
+      - ecommerce-network
+
+  
 networks:
   ecommerce-network:
     driver: bridge

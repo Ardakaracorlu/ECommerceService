@@ -3,22 +3,26 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Order.Api.csproj", "Order.Api/"]
-RUN dotnet restore "Order.Api/Order.Api.csproj"
-
-WORKDIR "/src/Order.Api"
+COPY ["Order.Api/Order.Api.csproj", "Order.Api/"]
+COPY ["Order.Consumer/Order.Consumer.csproj", "Order.Consumer/"]
+COPY ["Order.Data/Order.Data.csproj", "Order.Data/"]
+COPY ["Order.Common/Order.Common.csproj", "Order.Common/"]
+COPY ["Order.Service/Order.Service.csproj", "Order.Service/"]
+COPY ["Order.Common/Order.Common.csproj", "Order.Common/"]
+RUN dotnet restore "./Order.Api/Order.Api.csproj"
 COPY . .
-RUN dotnet build "Order.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Order.Api"
+RUN dotnet build "./Order.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Order.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Order.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

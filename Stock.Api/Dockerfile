@@ -3,22 +3,25 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Stock.Api.csproj", "Stock.Api/"]
-RUN dotnet restore "Stock.Api/Stock.Api.csproj"
-
-WORKDIR "/src/Stock.Api"
+COPY ["Stock.Api/Stock.Api.csproj", "Stock.Api/"]
+COPY ["Stock.Consumer/Stock.Consumer.csproj", "Stock.Consumer/"]
+COPY ["Stock.Common/Stock.Common.csproj", "Stock.Common/"]
+COPY ["Stock.Data/Stock.Data.csproj", "Stock.Data/"]
+COPY ["Stock.RabbitMQ/Stock.RabbitMQ.csproj", "Stock.RabbitMQ/"]
+RUN dotnet restore "./Stock.Api/Stock.Api.csproj"
 COPY . .
-RUN dotnet build "Stock.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Stock.Api"
+RUN dotnet build "./Stock.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Stock.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./Stock.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
