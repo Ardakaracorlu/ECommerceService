@@ -11,19 +11,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.Api", "Stock.Api\Stoc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.RabbitMQ", "RabbitMQ\Order.RabbitMQ.csproj", "{062C86EB-2925-43FA-BA78-6A67D4BD01A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Data", "Order.Data\Order.Data.csproj", "{465E91C5-142D-49EA-AC88-18954FBA7154}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.Data", "Order.Data\Order.Data.csproj", "{465E91C5-142D-49EA-AC88-18954FBA7154}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Service", "Order.Service\Order.Service.csproj", "{D9FA5ED9-D65A-4F37-88E3-27D32797A1AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.Service", "Order.Service\Order.Service.csproj", "{D9FA5ED9-D65A-4F37-88E3-27D32797A1AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Consumer", "Order.Consumer\Order.Consumer.csproj", "{F8F0F17E-7129-463A-80EB-D7894C82FAF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.Consumer", "Order.Consumer\Order.Consumer.csproj", "{F8F0F17E-7129-463A-80EB-D7894C82FAF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock.Data", "Stock.Data\Stock.Data.csproj", "{EEA1648C-40E4-4C15-B20A-821F641014E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.Data", "Stock.Data\Stock.Data.csproj", "{EEA1648C-40E4-4C15-B20A-821F641014E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock.Consumer", "Stock.Consumer\Stock.Consumer.csproj", "{6B499B8C-A26E-4151-929D-003A0AA8505B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.Consumer", "Stock.Consumer\Stock.Consumer.csproj", "{6B499B8C-A26E-4151-929D-003A0AA8505B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Data", "Notification.Data\Notification.Data.csproj", "{E5331322-FE16-4E31-9135-BD18C26E2A5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notification.Data", "Notification.Data\Notification.Data.csproj", "{E5331322-FE16-4E31-9135-BD18C26E2A5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Consumer", "Notification.Consumer\Notification.Consumer.csproj", "{C1B8B8F6-11E8-4EBE-95EC-65DBF46D005D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notification.Consumer", "Notification.Consumer\Notification.Consumer.csproj", "{C1B8B8F6-11E8-4EBE-95EC-65DBF46D005D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notification", "Notification", "{73C99030-A2D6-475D-B126-7CEEC00CAB5C}"
 EndProject
@@ -31,15 +31,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Order", "Order", "{2AA2AAF7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Stock", "Stock", "{C7CA12ED-FE25-41A3-8C39-43936CCFC308}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock.RabbitMQ", "Stock.RabbitMQ\Stock.RabbitMQ.csproj", "{5B603A53-DABF-4217-8D22-E20B1ABCF580}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.RabbitMQ", "Stock.RabbitMQ\Stock.RabbitMQ.csproj", "{5B603A53-DABF-4217-8D22-E20B1ABCF580}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.RabbitMQ", "Notification.RabbitMQ\Notification.RabbitMQ.csproj", "{5E893D6B-53BB-4D08-9859-4E404D04FF50}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notification.RabbitMQ", "Notification.RabbitMQ\Notification.RabbitMQ.csproj", "{5E893D6B-53BB-4D08-9859-4E404D04FF50}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock.Common", "Stock.Common\Stock.Common.csproj", "{972EB890-B5B8-47B4-9340-30160C772109}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock.Common", "Stock.Common\Stock.Common.csproj", "{972EB890-B5B8-47B4-9340-30160C772109}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Order.Common", "Order.Common\Order.Common.csproj", "{AA051994-0FEE-4531-995F-A38659C3D27D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Order.Common", "Order.Common\Order.Common.csproj", "{AA051994-0FEE-4531-995F-A38659C3D27D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Notification.Common", "Notification.Common\Notification.Common.csproj", "{E0A66F3A-30EF-44BF-9DA6-3B146DECBB3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notification.Common", "Notification.Common\Notification.Common.csproj", "{E0A66F3A-30EF-44BF-9DA6-3B146DECBB3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

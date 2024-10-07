@@ -59,10 +59,6 @@ namespace Order.Service.Service
                   _configManager.StockQueueConfiguration.RoutingKey,
                   _configManager.StockQueueConfiguration.MessageTtl);
             });
-
-
-              
-
             return "Siparişiniz Başarıyla Alındı";
         }
     }
