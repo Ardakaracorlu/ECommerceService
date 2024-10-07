@@ -13,52 +13,50 @@ namespace Notification.Consumer.Consumer
 {
     public class EmailConsumer : BackgroundService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IQueueOperation _queueOperation;
 
-        public EmailConsumer(IServiceProvider serviceProvider)
+        public EmailConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
         {
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
+            _queueOperation = queueOperation;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            _queueOperation.ConsumeQueue("notification_email", "notification_topic", "topic", "notification_email_key", 1, receivedEventHandler: (model, ea) =>
             {
-
-                using (var scope = _serviceProvider.CreateScope())
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var _notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
-                    var _queueOperation = scope.ServiceProvider.GetRequiredService<IQueueOperation>();
 
-                    _queueOperation.ConsumeQueue("notification_email", "notification_topic", "topic", "notification_email_key", 1, receivedEventHandler: (model, ea) =>
+
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    var emailResponse = JsonSerializer.Deserialize<NotificationEmailResponse>(message);
+
+                    SendMail(emailResponse.Message, emailResponse.Email);
+
+                    NotificationInfo notificationInfo = new NotificationInfo
                     {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-                        var emailResponse = JsonSerializer.Deserialize<NotificationEmailResponse>(message);
+                        Recipient = emailResponse.Email,
+                        Message = emailResponse.Message,
+                        NotificationStatus = NotificationStatus.Sent,
+                        NotificationType = NotificationType.Email,
+                        OrderId = emailResponse.OrderId,
+                    };
 
-                        SendMail(emailResponse.Message, emailResponse.Email);
+                    _notificationDbContext.Add(notificationInfo);
+                    _notificationDbContext.SaveChanges();
 
-                        NotificationInfo notificationInfo = new NotificationInfo
-                        {
-                            Recipient = emailResponse.Email,
-                            Message = emailResponse.Message,
-                            NotificationStatus = NotificationStatus.Sent,
-                            NotificationType = NotificationType.Email,
-                            OrderId = emailResponse.OrderId,
-                        };
-
-                        _notificationDbContext.Add(notificationInfo);
-                        _notificationDbContext.SaveChanges();
-
-                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-                    });
+                    ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                 }
+            });
 
-                // Bir sonraki dinleme döngüsüne geçmeden önce kısa bir bekleme süresi
-                await Task.Delay(1000, stoppingToken); // Örneğin 1 saniye
-            }
-
+            // Sürekli dinlemeyi sağla
+            return Task.CompletedTask;
         }
+
 
         private void SendMail(string message, string eMail)
         {

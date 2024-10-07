@@ -12,70 +12,68 @@ namespace Stock.Consumer.Consumer
 {
     public class StockConsumer : BackgroundService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IQueueOperation _queueOperation;
 
-        public StockConsumer(IServiceProvider serviceProvider)
+        public StockConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
         {
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
+            _queueOperation = queueOperation;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            // RabbitMQ'dan mesajları dinlemeye başla
+            _queueOperation.ConsumeQueue("stock_queue", "stock.direct", "direct", "stock_key", 1, async (model, ea) =>
             {
-                using (var scope = _serviceProvider.CreateScope())
+                using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var _stockDbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
-                    var _queueOperation = scope.ServiceProvider.GetRequiredService<IQueueOperation>();
 
-                    _queueOperation.ConsumeQueue("stock_queue", "stock.direct", "direct", "stock_key", 1, receivedEventHandler: (model, ea) =>
+                    var body = ea.Body.ToArray();
+                    var message = Encoding.UTF8.GetString(body);
+                    var stockResponse = JsonSerializer.Deserialize<StockQueueResponse>(message);
+
+                    // Mesajın işlenmesi ve veritabanı işlemleri
+                    var stockData = _stockDbContext.StocksInfo.SingleOrDefault(x => x.ProductId == stockResponse.ProductId);
+                    OrderStatusRequest orderStatusRequest = new OrderStatusRequest
                     {
-                        var body = ea.Body.ToArray();
-                        var message = Encoding.UTF8.GetString(body);
-                        var stockResponse = JsonSerializer.Deserialize<StockQueueResponse>(message);
+                        OrderId = stockResponse.OrderId
+                    };
 
-
-                        var stockData = _stockDbContext.StocksInfo.SingleOrDefault(x => x.ProductId == stockResponse.ProductId);
-                        OrderStatusRequest orderStatusRequest = new OrderStatusRequest
-                        {
-                            OrderId = stockResponse.OrderId
-                        };
-
-                        if (stockData == null)
-                        {
-                            orderStatusRequest.Message = "Ürün Bulunamadı";
-                            _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
-                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-
-                            return;
-                        }
-
-                        if (stockResponse.Quantity > stockData.Quantity)
-                        {
-                            orderStatusRequest.Message = "Ürün için Yeterli Stok Durumu bulunamadı";
-                            _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
-                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-
-                            return;
-                        }
-                        stockData.Quantity -= stockResponse.Quantity;
-                        stockData.UpdatedAt = DateTime.Now;
-                        _stockDbContext.Update(stockData);
-                        _stockDbContext.SaveChanges();
-
-
-                        orderStatusRequest.Message = "Sipariş Hazırlanıyor";
-                        orderStatusRequest.Status = true;
+                    if (stockData == null)
+                    {
+                        orderStatusRequest.Message = "Ürün Bulunamadı";
                         _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
-
                         ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                        return;
+                    }
 
-                    });
+                    if (stockResponse.Quantity > stockData.Quantity)
+                    {
+                        orderStatusRequest.Message = "Ürün için Yeterli Stok Durumu bulunamadı";
+                        _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
+                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                        return;
+                    }
+
+                    // Stok güncelleme
+                    stockData.Quantity -= stockResponse.Quantity;
+                    stockData.UpdatedAt = DateTime.Now;
+                    _stockDbContext.Update(stockData);
+                    await _stockDbContext.SaveChangesAsync();
+
+                    // Başarılı işlem sonrası mesaj gönderimi
+                    orderStatusRequest.Message = "Sipariş Hazırlanıyor";
+                    orderStatusRequest.Status = true;
+                    _queueOperation.PublishMessage(orderStatusRequest, "order_status_queue", "order_status_direct", "order_status_key", 0);
+
+                    ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
                 }
-                // Bir sonraki dinleme döngüsüne geçmeden önce kısa bir bekleme süresi
-                await Task.Delay(1000, stoppingToken); // Örneğin 1 saniye
-            }
+            });
 
+            // Sürekli dinlemeyi sağla
+            return Task.CompletedTask;
         }
     }
 }

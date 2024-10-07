@@ -27,7 +27,7 @@ namespace RabbitMQ.Extensions
             IConnection? rabbitConnection = connectionFactory.CreateConnection();
             services.AddSingleton(rabbitConnection);
 
-            services.AddScoped<IQueueOperation, QueueOperation>();
+            services.AddSingleton<IQueueOperation, QueueOperation>();
 
             return services;
         }

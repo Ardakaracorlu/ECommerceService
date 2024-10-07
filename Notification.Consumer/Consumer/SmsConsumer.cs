@@ -13,49 +13,48 @@ namespace Notification.Consumer.Consumer
 {
     public class SmsConsumer : BackgroundService
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IQueueOperation _queueOperation;
 
-        public SmsConsumer(IServiceProvider serviceProvider)
+        public SmsConsumer(IServiceScopeFactory serviceScopeFactory, IQueueOperation queueOperation)
         {
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
+            _queueOperation = queueOperation;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                using (var scope = _serviceProvider.CreateScope())
+            _queueOperation.ConsumeQueue("notification_sms", "notification_topic", "topic", "notification_sms_key", 1, receivedEventHandler: (model, ea) =>
                 {
-                    var _notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
-                    var _queueOperation = scope.ServiceProvider.GetRequiredService<IQueueOperation>();
 
-                    _queueOperation.ConsumeQueue("notification_sms", "notification_topic", "topic", "notification_sms_key", 1, receivedEventHandler: (model, ea) =>
+                    using (var scope = _serviceScopeFactory.CreateScope())
+                    {
+                        var _notificationDbContext = scope.ServiceProvider.GetRequiredService<NotificationDbContext>();
+
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var smsResponse = JsonSerializer.Deserialize<NotificationSmsResponse>(message);
+
+                        SendSms(smsResponse.Message, smsResponse.Phone);
+
+                        NotificationInfo notificationInfo = new NotificationInfo
                         {
-                            var body = ea.Body.ToArray();
-                            var message = Encoding.UTF8.GetString(body);
-                            var smsResponse = JsonSerializer.Deserialize<NotificationSmsResponse>(message);
+                            Recipient = smsResponse.Phone,
+                            Message = smsResponse.Message,
+                            NotificationStatus = NotificationStatus.Sent,
+                            NotificationType = NotificationType.Sms,
+                            OrderId = smsResponse.OrderId,
+                        };
 
-                            SendSms(smsResponse.Message, smsResponse.Phone);
+                        _notificationDbContext.Add(notificationInfo);
+                        _notificationDbContext.SaveChanges();
 
-                            NotificationInfo notificationInfo = new NotificationInfo
-                            {
-                                Recipient = smsResponse.Phone,
-                                Message = smsResponse.Message,
-                                NotificationStatus = NotificationStatus.Sent,
-                                NotificationType = NotificationType.Sms,
-                                OrderId = smsResponse.OrderId,
-                            };
+                        ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
+                    }
+                });
 
-                            _notificationDbContext.Add(notificationInfo);
-                            _notificationDbContext.SaveChanges();
-
-                            ((EventingBasicConsumer)model).Model.BasicAck(ea.DeliveryTag, false);
-                        });
-                }
-
-                // Bir sonraki dinleme döngüsüne geçmeden önce kısa bir bekleme süresi
-                await Task.Delay(1000, stoppingToken); // Örneğin 1 saniye
-            }
+            // Sürekli dinlemeyi sağla
+            return Task.CompletedTask;
         }
 
         private void SendSms(string message, string phone)
