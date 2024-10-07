@@ -1,5 +1,5 @@
-using Notification.Api.Consumer;
 using Notification.Api.Extension;
+using Notification.Consumer.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
