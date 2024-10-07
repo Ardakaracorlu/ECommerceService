@@ -1,0 +1,2 @@
+VHOST: /
+QUEUE: order_status_queue
