@@ -16,7 +16,7 @@ namespace Order.Data.Context
 
             modelBuilder.Entity<OrderInfo>(entity =>
             {
-                entity.ToTable("OrderInfo");
+                entity.ToTable("order_info");
                 entity.HasQueryFilter(x => !x.DeletedAt.HasValue);
             });
 

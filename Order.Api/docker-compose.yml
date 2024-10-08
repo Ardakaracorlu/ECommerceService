@@ -7,8 +7,8 @@ services:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
     ports:
-      - "5672:5672"  # Mesajlaþma portu
-      - "15672:15672"  # Yönetim paneli portu
+      - "5672:5672"  # Mesajla ma portu
+      - "15672:15672"  # Y netim paneli portu
     volumes:
       - ./rabbitmq_data:/var/lib/rabbitmq
     networks:

@@ -3,6 +3,13 @@ using Notification.Consumer.Consumer;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#if DEBUG
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+#endif
+#if RELEASE
+Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Production");
+#endif
+
 // Add services to the container.
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 var configuration = new ConfigurationBuilder()
