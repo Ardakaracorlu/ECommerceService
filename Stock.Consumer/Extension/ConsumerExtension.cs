@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Stock.Consumer.Configuration;
 using Stock.Consumer.Consumer;
-using Stock.RabbitMQ.RabbitMQClient.Interface;
+using Stock.Infrastructure.RabbitMQClient.Interface;
 
 namespace Stock.Consumer.Extension
 {
@@ -12,8 +12,7 @@ namespace Stock.Consumer.Extension
         {
             services.AddSingleton<ConfigManager>();
             services.AddHostedService<StockConsumer>();
-            Stock.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
-            Stock.Data.Extension.DataExtension.RegisterService(services, configuration);
+            Stock.Infrastructure.Extension.InfrastructureExtension.RegisterService(services, configuration);
             ConfigureQueueSystem(services, configuration);
             return services;
         }

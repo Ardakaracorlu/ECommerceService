@@ -13,9 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stock.Common\Stock.Common.csproj" />
-    <ProjectReference Include="..\Stock.Data\Stock.Data.csproj" />
-    <ProjectReference Include="..\Stock.RabbitMQ\Stock.RabbitMQ.csproj" />
+    <ProjectReference Include="..\Stock.Infrastructure\Stock.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

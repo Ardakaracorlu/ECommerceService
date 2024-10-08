@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client.Events;
-using Stock.Common.Helper;
 using Stock.Consumer.Configuration;
 using Stock.Consumer.Model.Request;
 using Stock.Consumer.Model.Response;
-using Stock.Data.Context;
-using Stock.RabbitMQ.RabbitMQClient.Interface;
+using Stock.Infrastructure.Data.Context;
+using Stock.Infrastructure.Helper;
+using Stock.Infrastructure.RabbitMQClient.Interface;
 using System.Text;
 using System.Text.Json;
 
