@@ -16,7 +16,7 @@ namespace Stock.Data.Context
 
             modelBuilder.Entity<StockInfo>(entity =>
             {
-                entity.ToTable("StockInfo");
+                entity.ToTable("stock_info");
                 entity.HasQueryFilter(x => !x.DeletedAt.HasValue);
             });
 

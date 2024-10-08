@@ -16,7 +16,7 @@ namespace Notification.Data.Context
 
             modelBuilder.Entity<NotificationInfo>(entity =>
             {
-                entity.ToTable("NotificationInfo");
+                entity.ToTable("notification_info");
                 entity.HasQueryFilter(x => !x.DeletedAt.HasValue);
             });
 
