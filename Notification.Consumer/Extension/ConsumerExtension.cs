@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Notification.Consumer.Configuration;
 using Notification.Consumer.Consumer;
-using Notification.RabbitMQ.RabbitMQClient.Interface;
+using Notification.Infrastructure.RabbitMQClient.Interface;
 
 namespace Notification.Consumer.Extension
 {
@@ -13,8 +13,7 @@ namespace Notification.Consumer.Extension
             services.AddSingleton<ConfigManager>();
             services.AddHostedService<EmailConsumer>();
             services.AddHostedService<SmsConsumer>();
-            Notification.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
-            Notification.Data.Extension.DataExtension.RegisterService(services, configuration);
+            Notification.Infrastructure.Extension.InfrastructureExtension.RegisterService(services, configuration);
             ConfigureNotificationEmailQueueSystem(services, configuration);
             ConfigureNotificationSmsQueueSystem(services, configuration);
             return services;

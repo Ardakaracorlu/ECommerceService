@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Notification.Common.Helper;
 using Notification.Consumer.Configuration;
 using Notification.Consumer.Model.Response;
-using Notification.Data.Constants;
-using Notification.Data.Context;
-using Notification.Data.Entities;
-using Notification.RabbitMQ.RabbitMQClient.Interface;
+using Notification.Infrastructure.Data.Constants;
+using Notification.Infrastructure.Data.Context;
+using Notification.Infrastructure.Data.Entities;
+using Notification.Infrastructure.Helper;
+using Notification.Infrastructure.RabbitMQClient.Interface;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;

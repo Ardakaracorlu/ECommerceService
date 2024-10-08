@@ -11,9 +11,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Notification.Api/Notification.Api.csproj", "Notification.Api/"]
 COPY ["Notification.Consumer/Notification.Consumer.csproj", "Notification.Consumer/"]
-COPY ["Notification.Common/Notification.Common.csproj", "Notification.Common/"]
-COPY ["Notification.Data/Notification.Data.csproj", "Notification.Data/"]
-COPY ["Notification.RabbitMQ/Notification.RabbitMQ.csproj", "Notification.RabbitMQ/"]
+COPY ["Notification.Infrastructure/Notification.Infrastructure.csproj", "Notification.Infrastructure/"]
 RUN dotnet restore "./Notification.Api/Notification.Api.csproj"
 COPY . .
 WORKDIR "/src/Notification.Api"

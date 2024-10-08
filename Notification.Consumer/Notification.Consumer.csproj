@@ -13,13 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Notification.Common\Notification.Common.csproj" />
-    <ProjectReference Include="..\Notification.Data\Notification.Data.csproj" />
-    <ProjectReference Include="..\Notification.RabbitMQ\Notification.RabbitMQ.csproj" />
+    <Folder Include="Model\Request\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Model\Request\" />
+    <ProjectReference Include="..\Notification.Infrastructure\Notification.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
