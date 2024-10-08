@@ -27,7 +27,7 @@ services:
       - "5433:5432"
     volumes:
       - /var/lib/postgresql/data
-      - ./Notification.Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Notification.Infrastructure/Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ecommerce-network
 
@@ -64,7 +64,7 @@ services:
       - "5434:5432"
     volumes:
       - /var/lib/postgresql/data
-      - ./Stock.Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Stock.Infrastructure/Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ecommerce-network
 
@@ -100,7 +100,7 @@ services:
       - "5432:5432"
     volumes:
       - /var/lib/postgresql/data
-      - ./Order.Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Order.Infrastructure/Data/initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ecommerce-network
 
