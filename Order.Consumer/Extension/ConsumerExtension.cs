@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Order.Consumer.Configuration;
 using Order.Consumer.Consumer;
-using Order.RabbitMQ.RabbitMQClient.Interface;
+using Order.Infrastructure.RabbitMQClient.Interface;
 
 namespace Order.Consumer.Extension
 {
@@ -12,8 +12,7 @@ namespace Order.Consumer.Extension
         {
             services.AddSingleton<ConfigManager>();
             services.AddHostedService<OrderStatusConsumer>();
-            Order.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
-            Order.Data.Extension.DataExtension.RegisterService(services, configuration);
+            Order.Infrastructure.Extension.InfrastructureExtension.RegisterService(services, configuration);
             ConfigureQueueSystem(services, configuration);
             return services;
         }

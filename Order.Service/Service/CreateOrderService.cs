@@ -1,8 +1,8 @@
-﻿using Order.Common.Helper;
-using Order.Data.Constants;
-using Order.Data.Context;
-using Order.Data.Entities;
-using Order.RabbitMQ.RabbitMQClient.Interface;
+﻿using Order.Infrastructure.Data.Constants;
+using Order.Infrastructure.Data.Context;
+using Order.Infrastructure.Data.Entities;
+using Order.Infrastructure.Helper;
+using Order.Infrastructure.RabbitMQClient.Interface;
 using Order.Service.Configuration;
 using Order.Service.Model.Request;
 

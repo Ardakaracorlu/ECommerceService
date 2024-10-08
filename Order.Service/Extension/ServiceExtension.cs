@@ -11,8 +11,7 @@ namespace Order.Service.Extension
         {
             services.AddSingleton<ConfigManager>();
             services.AddScoped<ICreateOrderService, CreateOrderService>();
-            Order.RabbitMQ.Extensions.RabbitMqExtension.RegisterRabbitMqExtension(services, configuration);
-            Order.Data.Extension.DataExtension.RegisterService(services, configuration);
+            Order.Infrastructure.Extension.InfrastructureExtension.RegisterService(services, configuration);
             return services;
         }
     }
