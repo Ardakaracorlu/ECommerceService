@@ -31,7 +31,7 @@ services:
     networks:
       - ecommerce-network
 
-    notification-service:
+  notification-service:
         build:
           context: .
           dockerfile: Notification.Api/Dockerfile
@@ -68,7 +68,7 @@ services:
     networks:
       - ecommerce-network
 
-    stock-service:
+  stock-service:
     build:
       context: .
       dockerfile: Stock.Api/Dockerfile
@@ -104,7 +104,7 @@ services:
     networks:
       - ecommerce-network
 
-    order-service:
+  order-service:
         build:
           context: .
           dockerfile: Order.Api/Dockerfile
